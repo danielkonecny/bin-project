@@ -3,3 +3,4 @@ numpy
 pandas
 tensorflow
 scikit-learn
+pydot
