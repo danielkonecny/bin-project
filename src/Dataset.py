@@ -1,3 +1,14 @@
+"""Autoencoder Design
+Design Autoencoder for image denoising using Evolutionary Algorithm (Genetic Algorithm).
+Course: Bio-Inspired Computers (BIN)
+Organisation: Brno University of Technology - Faculty of Information Technologies
+Author: Daniel Konecny (xkonec75)
+File: Dataset.py
+Date: 07. 05. 2021
+"""
+
+
+from pathlib import Path
 import numpy as np
 import tensorflow as tf
 from tensorflow import newaxis, clip_by_value
@@ -6,6 +17,7 @@ from tensorflow.keras.datasets import fashion_mnist
 
 class Dataset:
     def __init__(self, noise_factor=0.2):
+        Path("dataset").mkdir(parents=True, exist_ok=True)
         try:
             self.train = np.load('dataset/mnist_fashion_32_train.npy')
             self.test = np.load('dataset/mnist_fashion_32_test.npy')

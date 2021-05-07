@@ -1,3 +1,13 @@
+"""Autoencoder Design
+Design Autoencoder for image denoising using Evolutionary Algorithm (Genetic Algorithm).
+Course: Bio-Inspired Computers (BIN)
+Organisation: Brno University of Technology - Faculty of Information Technologies
+Author: Daniel Konecny (xkonec75)
+File: Autoencoder.py
+Date: 07. 05. 2021
+"""
+
+
 from abc import ABC
 import tensorflow as tf
 from tensorflow.keras import layers

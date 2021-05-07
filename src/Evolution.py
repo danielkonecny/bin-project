@@ -1,7 +1,16 @@
+"""Autoencoder Design
+Design Autoencoder for image denoising using Evolutionary Algorithm (Genetic Algorithm).
+Course: Bio-Inspired Computers (BIN)
+Organisation: Brno University of Technology - Faculty of Information Technologies
+Author: Daniel Konecny (xkonec75)
+File: Evolution.py
+Date: 07. 05. 2021
+"""
+
+
 import copy
 import numpy as np
 import tensorflow as tf
-import pprint
 
 import Autoencoder
 import Dataset
@@ -50,35 +59,53 @@ chromosome_original = [{
 
 def mutate(individuals):
     for individual_index in range(len(individuals)):
-        individual_copy = copy.deepcopy(individuals[individual_index])
-        print(f"Individual: {individuals[individual_index]}")
-        for gene_index in range(len(individuals[individual_index])):
-            random = np.random.uniform(0, 1, 5)
-            print(f"Mutation - random list: {random}")
-            if random[0] < 0.2 and individuals[individual_index][gene_index]['filters'] <= 14:
-                individuals[individual_index][gene_index]['filters'] += 2
-            elif random[0] > 0.8 and individuals[individual_index][gene_index]['filters'] >= 4:
-                individuals[individual_index][gene_index]['filters'] -= 2
-            if random[1] < 0.05 and individuals[individual_index][gene_index]['kernel_size_x'] <= 5:
-                individuals[individual_index][gene_index]['kernel_size_x'] += 1
-            elif random[1] > 0.95 and individuals[individual_index][gene_index]['kernel_size_x'] >= 2:
-                individuals[individual_index][gene_index]['kernel_size_x'] -= 1
-            if random[2] < 0.05 and individuals[individual_index][gene_index]['kernel_size_y'] <= 5:
-                individuals[individual_index][gene_index]['kernel_size_y'] += 1
-            elif random[2] > 0.95 and individuals[individual_index][gene_index]['kernel_size_y'] >= 2:
-                individuals[individual_index][gene_index]['kernel_size_y'] -= 1
-            if random[3] < 0.05 and individuals[individual_index][gene_index]['strides_x'] == 1:
-                individuals[individual_index][gene_index]['strides_x'] = 2
-            elif random[3] < 0.05 and individuals[individual_index][gene_index]['strides_x'] == 2:
-                individuals[individual_index][gene_index]['strides_x'] = 1
-            if random[4] < 0.05 and individuals[individual_index][gene_index]['strides_y'] == 1:
-                individuals[individual_index][gene_index]['strides_y'] = 2
-            elif random[4] < 0.05 and individuals[individual_index][gene_index]['strides_y'] == 2:
-                individuals[individual_index][gene_index]['strides_y'] = 1
+        mutated_individual = copy.deepcopy(individuals[individual_index])
+        mutated = False
 
-        if get_model_encoding(individuals[individual_index]) >= 32 * 32:
-            print("Too big after mutation.")
-            individuals[individual_index] = individual_copy
+        print(f"Before mutation: {mutated_individual}")
+
+        for gene_index in range(len(mutated_individual)):
+            random = np.random.uniform(0, 1, 5)
+            if random[0] < 0.2 and mutated_individual[gene_index]['filters'] <= 14:
+                mutated_individual[gene_index]['filters'] += 2
+                mutated = True
+            elif random[0] > 0.8 and mutated_individual[gene_index]['filters'] >= 4:
+                mutated_individual[gene_index]['filters'] -= 2
+                mutated = True
+            if random[1] < 0.05 and mutated_individual[gene_index]['kernel_size_x'] <= 5:
+                mutated_individual[gene_index]['kernel_size_x'] += 1
+                mutated = True
+            elif random[1] > 0.95 and mutated_individual[gene_index]['kernel_size_x'] >= 2:
+                mutated_individual[gene_index]['kernel_size_x'] -= 1
+                mutated = True
+            if random[2] < 0.05 and mutated_individual[gene_index]['kernel_size_y'] <= 5:
+                mutated_individual[gene_index]['kernel_size_y'] += 1
+                mutated = True
+            elif random[2] > 0.95 and mutated_individual[gene_index]['kernel_size_y'] >= 2:
+                mutated_individual[gene_index]['kernel_size_y'] -= 1
+                mutated = True
+            if random[3] < 0.05 and mutated_individual[gene_index]['strides_x'] == 1:
+                mutated_individual[gene_index]['strides_x'] = 2
+                mutated = True
+            elif random[3] < 0.05 and mutated_individual[gene_index]['strides_x'] == 2:
+                mutated_individual[gene_index]['strides_x'] = 1
+                mutated = True
+            if random[4] < 0.05 and mutated_individual[gene_index]['strides_y'] == 1:
+                mutated_individual[gene_index]['strides_y'] = 2
+                mutated = True
+            elif random[4] < 0.05 and mutated_individual[gene_index]['strides_y'] == 2:
+                mutated_individual[gene_index]['strides_y'] = 1
+                mutated = True
+
+        if mutated is True:
+            print(f"Different after mutation: {mutated_individual}")
+        else:
+            print(f"Identical after mutation: {mutated_individual}")
+
+        size = get_model_encoding(mutated_individual)
+        if mutated and size < 32 * 32:
+            individuals[individual_index] = copy.deepcopy(mutated_individual)
+            # print(f"New individual obtained by mutation with size {size} - {individuals[individual_index]}.")
 
     return individuals
 
@@ -123,12 +150,11 @@ class Evolution:
                     "strides_y": strides[1][chromosome_index]
                 })
 
-            if get_model_encoding(chromosome) < 32*32:
+            size = get_model_encoding(chromosome)
+            if size < 32 * 32:
+                print(f"New individual obtained by initialization with size {size} - {chromosome}.")
                 self.population.append(chromosome)
-                pprint.pprint(chromosome)
                 population_index += 1
-            else:
-                print("Too big to create.")
 
     def evaluate_population(self):
         self.evaluation = []
@@ -168,12 +194,20 @@ class Evolution:
                 break
             chosen_index2 += 1
 
+        print(f"Parent1: {self.population[chosen_index1]}")
+        print(f"Parent2: {self.population[chosen_index2]}")
+
         return self.population[chosen_index1], self.population[chosen_index2]
 
     def recombinate(self, parent1, parent2):
         crossing_site = np.random.randint(low=1, high=self.chromosome_length)
-        return parent1[:crossing_site] + parent2[crossing_site:], \
-               parent2[:crossing_site] + parent1[crossing_site:]
+        recombination1 = parent1[:crossing_site] + parent2[crossing_site:]
+        recombination2 = parent2[:crossing_site] + parent1[crossing_site:]
+
+        print(f"Offspring1: {recombination1}")
+        print(f"Offspring2: {recombination2}")
+
+        return recombination1, recombination2
 
     def combine_generations(self, offsprings):
         offsprings_eval = []
@@ -203,6 +237,7 @@ class Evolution:
 
     def get_best_individual(self):
         sorted_population = [x for _, x in sorted(zip(self.evaluation, self.population))]
+
         encoder = Transformer.chromosome_to_encoder(sorted_population[0])
         decoder = Transformer.chromosome_to_decoder(sorted_population[0])
         autoencoder = Autoencoder.Autoencoder(encoder, decoder)
