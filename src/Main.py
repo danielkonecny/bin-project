@@ -129,9 +129,9 @@ if __name__ == "__main__":
     """
     mode = 0
 
-    population_size = 20
-    recombinate_count = 5
-    generation_count = 20
+    population_size = 40
+    recombinate_count = 10
+    generation_count = 5
 
     dataset = Dataset.Dataset()
 

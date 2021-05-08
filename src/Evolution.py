@@ -16,53 +16,11 @@ import Autoencoder
 import Dataset
 import Transformer
 
-chromosome_test = [{
-    "filters": 16,
-    "kernel_size_x": 3,
-    "kernel_size_y": 3,
-    "strides_x": 2,
-    "strides_y": 2
-}, {
-    "filters": 8,
-    "kernel_size_x": 3,
-    "kernel_size_y": 3,
-    "strides_x": 2,
-    "strides_y": 1
-}, {
-    "filters": 4,
-    "kernel_size_x": 1,
-    "kernel_size_y": 1,
-    "strides_x": 2,
-    "strides_y": 2
-}, {
-    "filters": 2,
-    "kernel_size_x": 3,
-    "kernel_size_y": 3,
-    "strides_x": 1,
-    "strides_y": 1
-}]
-
-chromosome_original = [{
-    "filters": 16,
-    "kernel_size_x": 3,
-    "kernel_size_y": 3,
-    "strides_x": 2,
-    "strides_y": 2
-}, {
-    "filters": 8,
-    "kernel_size_x": 3,
-    "kernel_size_y": 3,
-    "strides_x": 2,
-    "strides_y": 2
-}]
-
 
 def mutate(individuals):
     for individual_index in range(len(individuals)):
         mutated_individual = copy.deepcopy(individuals[individual_index])
         mutated = False
-
-        print(f"Before mutation: {mutated_individual}")
 
         for gene_index in range(len(mutated_individual)):
             random = np.random.uniform(0, 1, 5)
@@ -97,15 +55,10 @@ def mutate(individuals):
                 mutated_individual[gene_index]['strides_y'] = 1
                 mutated = True
 
-        if mutated is True:
-            print(f"Different after mutation: {mutated_individual}")
-        else:
-            print(f"Identical after mutation: {mutated_individual}")
-
         size = get_model_encoding(mutated_individual)
         if mutated and size < 32 * 32:
             individuals[individual_index] = copy.deepcopy(mutated_individual)
-            # print(f"New individual obtained by mutation with size {size} - {individuals[individual_index]}.")
+            print(f"Changed individual with mutation with size {size} - {individuals[individual_index]}.")
 
     return individuals
 
@@ -152,7 +105,7 @@ class Evolution:
 
             size = get_model_encoding(chromosome)
             if size < 32 * 32:
-                print(f"New individual obtained by initialization with size {size} - {chromosome}.")
+                print(f"New individual obtained with initialization with size {size} - {chromosome}.")
                 self.population.append(chromosome)
                 population_index += 1
 
@@ -169,7 +122,6 @@ class Evolution:
                                       shuffle=True,
                                       validation_data=(self.dataset.test_noisy, self.dataset.test))
             self.evaluation.append(history.history['val_loss'][-1])
-        print(f"Evaluated: {self.evaluation}")
 
     def get_parents(self):
         inverted = np.reciprocal(self.evaluation)
